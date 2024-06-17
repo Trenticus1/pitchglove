@@ -1,5 +1,5 @@
 // Trent's pitch glove code
-#define DEBUG 1
+#define DEBUG 0
 
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
@@ -114,17 +114,20 @@ void loop() {
   float roll = atan2(-ay,az)*180/3.141592654;
 
   String note = "n00";
-  
-  if (roll > 80) note = "n01";
-    else if (roll > 60 and roll <= 80) note = "n02";
-    else if (roll > 40 and roll <= 60) note = "n03";
-    else if (roll > 20 and roll <= 40) note = "n04";
-    else if (roll > 0 and roll <= 20) note = "n05";
-    else if (roll > -20 and roll <= 0) note = "n06";
-    else if (roll > -40 and roll <= -20) note = "n07";
-    else if (roll > -60 and roll <= -40) note = "n08";
-    else if (roll > -80 and roll <= -60) note = "n09";
-    else if (roll <= -80) note = "n10";
+
+  if (g.gyro.x < 0.2) {
+    if (roll > 80) note = "n01";
+      else if (roll > 60 and roll <= 80) note = "n02";
+      else if (roll > 40 and roll <= 60) note = "n03";
+      else if (roll > 20 and roll <= 40) note = "n04";
+      else if (roll > 0 and roll <= 20) note = "n05";
+      else if (roll > -20 and roll <= 0) note = "n06";
+      else if (roll > -40 and roll <= -20) note = "n07";
+      else if (roll > -60 and roll <= -40) note = "n08";
+      else if (roll > -80 and roll <= -60) note = "n09";
+      else if (roll <= -80) note = "n10";
+  }
+  else note = last_note;
   
   String play = "s";
   
@@ -160,4 +163,3 @@ void loop() {
    #endif
 
 }
-
