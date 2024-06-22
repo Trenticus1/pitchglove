@@ -1,6 +1,4 @@
 // Trent's pitch glove code
-#define DEBUG 0
-
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
@@ -9,6 +7,7 @@
 
 Adafruit_MPU6050 mpu;
 RH_ASK driver(2000, 4, 5);
+int debug = 1;
 
 String last_note = "n00";
 String last_play = "s";
@@ -110,24 +109,28 @@ void loop() {
   //float accel_ang_x = -atan2(ax,az)/2/3.141592654*360; 
   //float accel_ang_y = -atan2(ay,az)/2/3.141592654*360;
   //float accel_ang_x = atan2(ax,az)*180/3.141592654;
-  float pitch = atan2(-ax, sqrt(ay*ay + az*az))*180/3.141592654;
-  float roll = atan2(-ay,az)*180/3.141592654;
+  //float pitch = atan2(-ax, sqrt(ay*ay + az*az))*180/3.141592654;
+  //float roll = atan2(-ay,az)*180/3.141592654;
+  //float roll = atan2(-ay, sqrt(ax*ax + az*az))*180/3.141592654;
+  float roll = atan2(ay,sqrt(ax*ax + az*az))*180/3.141592654;
+  float pitch = atan2(-ax,sqrt(ay*ay + az*az))*180/3.141592654;
+  
 
-  String note = "n00";
+  String note = last_note;
 
-  if (g.gyro.x < 0.2) {
-    if (roll > 80) note = "n01";
-      else if (roll > 60 and roll <= 80) note = "n02";
-      else if (roll > 40 and roll <= 60) note = "n03";
-      else if (roll > 20 and roll <= 40) note = "n04";
-      else if (roll > 0 and roll <= 20) note = "n05";
-      else if (roll > -20 and roll <= 0) note = "n06";
-      else if (roll > -40 and roll <= -20) note = "n07";
-      else if (roll > -60 and roll <= -40) note = "n08";
-      else if (roll > -80 and roll <= -60) note = "n09";
-      else if (roll <= -80) note = "n10";
+  if (fabs(g.gyro.y) < 0.2) {
+    if (roll > 82) note = "n01";
+      else if (roll > 62 and roll < 78) note = "n02";
+      else if (roll > 42 and roll < 58) note = "n03";
+      else if (roll > 22 and roll < 38) note = "n04";
+      else if (roll > 2 and roll < 18) note = "n05";
+      else if (roll > -18 and roll < -2) note = "n06";
+      else if (roll > -38 and roll < -22) note = "n07";
+      else if (roll > -58 and roll < -42) note = "n08";
+      else if (roll > -78 and roll < -62) note = "n09";
+      else if (roll <= -82) note = "n10";
   }
-  else note = last_note;
+  // else note = last_note;
   
   String play = "s";
   
@@ -135,21 +138,23 @@ void loop() {
     else play = "s";
 
   // Show results
-  #ifdef DEBUG
-  Serial.print(F("X Pitch: "));
-  Serial.print(pitch);
-  Serial.print(F("\tY Roll: "));
-  Serial.print(roll);
-  Serial.print(F("\tNote: "));
-  Serial.print(note);
-  Serial.print(F("\tPlay: "));
-  Serial.println(play);
-  #endif
+  if (debug) {
+    Serial.print(F("X Pitch: "));
+    Serial.print(pitch);
+    Serial.print(F("\tY Roll: "));
+    Serial.print(roll);
+    Serial.print(F("\tNote: "));
+    Serial.print(note);
+    Serial.print(F("\tPlay: "));
+    Serial.print(play);
+    Serial.print(F("\tGyro: "));
+    Serial.println(g.gyro.y);
+  }
 
   if ((last_note != note) || (last_play != play))
   {
     String status = note + play;
-    char *msg = "note00s";
+    char msg[8] = "note00s";
     status.toCharArray(msg,8);
     driver.send((uint8_t *)msg, strlen(msg));
     driver.waitPacketSent();
@@ -158,8 +163,8 @@ void loop() {
     last_play = play;
   }
 
-   #ifdef DEBUG
-   delay(100);
-   #endif
+   if (debug) {
+    delay(100);
+   }
 
 }
